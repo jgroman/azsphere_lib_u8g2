@@ -1,1 +1,1 @@
-# azsphere_lib_u8g2
+# Azure Sphere custom wrapper for u8g2 library.
