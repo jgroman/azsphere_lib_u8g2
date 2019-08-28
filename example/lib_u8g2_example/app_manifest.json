@@ -1,0 +1,15 @@
+{
+  "SchemaVersion": 1,
+  "Name" : "lib_u8g2_example",
+  "ComponentId" : "d63b3594-a28c-4f96-bf76-70f80cb3fd92",
+  "EntryPoint": "/bin/app",
+  "CmdArgs": [],
+  "Capabilities": {
+    "AllowedConnections": [],
+    "Gpio": [ ],
+    "I2cMaster": [ "$PROJECT_ISU2_I2C" ],
+    "Uart": [],
+    "WifiConfig": false
+  },
+  "ApplicationType":"Default"
+}
