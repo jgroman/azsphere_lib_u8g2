@@ -1,4 +1,32 @@
-﻿#include <stdbool.h>
+﻿/***************************************************************************//**
+* @file    main.c
+* @version 1.0.0
+* @authors Jaroslav Groman
+*
+* @par Project Name
+*     Lib_u8g2 example.
+*
+* @par Description
+*    .
+*
+* @par Target device
+*    Azure Sphere MT3620
+*
+* @par Related hardware
+*    Avnet Azure Sphere Starter Kit
+*    OLED display 128 x 64
+*
+* @par Code Tested With
+*    1. Silicon: Avnet Azure Sphere Starter Kit
+*    2. IDE: Visual Studio 2017
+*    3. SDK: Azure Sphere SDK Preview
+*
+* @par Notes
+*    .
+*
+*******************************************************************************/
+
+#include <stdbool.h>
 #include <errno.h>
 #include <signal.h>
 #include <string.h>
@@ -10,147 +38,356 @@
 #include "applibs_versions.h"
 #include <applibs/log.h>
 #include <applibs/i2c.h>
+#include <applibs/gpio.h>
 
 // Import project hardware abstraction from project 
 // property "Target Hardware Definition Directory"
 #include <hw/project_hardware.h>
 
+// Using a single-thread event loop pattern based on Epoll and timerfd
+#include "epoll_timerfd_utilities.h"
+
 #include "lib_u8g2.h"
 
-// Support functions.
-static void TerminationHandler(int signalNumber);
-static int InitPeripheralsAndHandlers(void);
-static void ClosePeripheralsAndHandlers(void);
+/*******************************************************************************
+*   Macros and #define Constants
+*******************************************************************************/
 
-// File descriptors - initialized to invalid value
-static int i2cFd = -1;
+#define I2C_ISU             PROJECT_ISU2_I2C
+#define I2C_BUS_SPEED       I2C_BUS_SPEED_STANDARD
+#define I2C_TIMEOUT_MS      (100u)
 
-// Termination state
-static volatile sig_atomic_t terminationRequired = false;
+#define I2C_ADDR_OLED       (0x3C)
 
-/// <summary>
-///     Signal handler for termination requests. This handler must be async-signal-safe.
-/// </summary>
-static void TerminationHandler(int signalNumber)
-{
-	// Don't use Log_Debug here, as it is not guaranteed to be async-signal-safe.
-	terminationRequired = true;
-}
+#define OLED_LINE_LENGTH    (16u)
 
-/// <summary>
-///     Set up SIGTERM termination handler, initialize peripherals, and set up event handlers.
-/// </summary>
-/// <returns>0 on success, or -1 on failure</returns>
-static int InitPeripheralsAndHandlers(void)
-{
-	struct sigaction action;
-	memset(&action, 0, sizeof(struct sigaction));
-	action.sa_handler = TerminationHandler;
-	sigaction(SIGTERM, &action, NULL);
+/*******************************************************************************
+* Forward declarations of private functions
+*******************************************************************************/
 
-	// Init I2C
-	i2cFd = I2CMaster_Open(PROJECT_ISU2_I2C);
-	if (i2cFd < 0) 
-    {
-		Log_Debug("ERROR: I2CMaster_Open: errno=%d (%s)\n", 
-            errno, strerror(errno));
-		return -1;
-	}
+/**
+ * @brief Application termination handler.
+ *
+ * Signal handler for termination requests. This handler must be
+ * async-signal-safe.
+ *
+ * @param signal_number
+ *
+ */
+static void
+termination_handler(int signal_number);
 
-	int result = I2CMaster_SetBusSpeed(i2cFd, I2C_BUS_SPEED_STANDARD);
-	if (result != 0) 
-    {
-		Log_Debug("ERROR: I2CMaster_SetBusSpeed: errno=%d (%s)\n", 
-            errno, strerror(errno));
-		return -1;
-	}
+/**
+ * @brief Initialize signal handlers.
+ *
+ * Set up SIGTERM termination handler.
+ *
+ * @return 0 on success, -1 otherwise.
+ */
+static int
+init_handlers(void);
 
-	result = I2CMaster_SetTimeout(i2cFd, 100);
-	if (result != 0) 
-    {
-		Log_Debug("ERROR: I2CMaster_SetTimeout: errno=%d (%s)\n", 
-            errno, strerror(errno));
-		return -1;
-	}
+/**
+ * @brief Initialize peripherals.
+ *
+ * Initialize all peripherals used by this project.
+ *
+ * @return 0 on success, -1 otherwise.
+ */
+static int
+init_peripherals(void);
 
-	result = I2CMaster_SetDefaultTargetAddress(i2cFd, 0x3C);
-	if (result != 0) 
-    {
-		Log_Debug("ERROR: I2CMaster_SetDefaultTargetAddress: errno=%d (%s)\n", 
-            errno, strerror(errno));
-		return -1;
-	}
+/**
+ *
+ */
+static void
+close_peripherals_and_handlers(void);
 
-	return 0;
-}
+/**
+ * @brief Button1 press handler
+ */
+static void
+handle_button1_press(void);
 
-/// <summary>
-///     Close peripherals and handlers.
-/// </summary>
-static void ClosePeripheralsAndHandlers(void)
-{
-	close(i2cFd);
-}
+/**
+ * @brief Timer event handler for polling button states
+ */
+static void
+event_handler_timer_button(EventData *event_data);
 
-/// <summary>
-///     Display drawing demo
-/// </summary>
-void u8x8Main(void)
-{
-	const struct timespec sleepTime = { 1, 0 };
-	u8x8_t u8x8;
 
-    nanosleep(&sleepTime, NULL);
+/*******************************************************************************
+* Global variables
+*******************************************************************************/
 
-	Log_Debug("Calling Setup\n");
-	u8x8_Setup(&u8x8, u8x8_d_ssd1306_128x64_noname, u8x8_cad_ssd13xx_i2c, 
-        u8x8_byte_i2c, lib_u8g2_custom_cb);
-	u8x8_SetI2CAddress(&u8x8, 0x3C);
+// Termination state flag
+volatile sig_atomic_t gb_is_termination_requested = false;
 
-	Log_Debug("Calling Init\n");
-	u8x8_InitDisplay(&u8x8);
+static int g_fd_epoll = -1;        // Epoll file descriptor
+static int g_fd_i2c = -1;          // I2C interface file descriptor
+static int g_fd_gpio_button1 = -1; // GPIO button1 file descriptor
+static int g_fd_poll_timer_button = -1;    // Poll timer button press file desc.
 
-	u8x8_SetPowerSave(&u8x8, 0);
+static GPIO_Value_Type g_state_button1 = GPIO_Value_High;
 
-	Log_Debug("Calling ClearDisplay\n");
-	u8x8_ClearDisplay(&u8x8);
+static EventData g_event_data_button = {          // Button Event data
+    .eventHandler = &event_handler_timer_button
+};
 
-	Log_Debug("Calling Set Font\n");
-	u8x8_SetFont(&u8x8, u8x8_font_amstrad_cpc_extended_f);
+static u8x8_t g_u8x8;              // OLED device descriptor
 
-	Log_Debug("Sending drawstring\n");
-
-	char buff[10];
-	uint8_t i;
-	uint8_t j = 0;
-
-	for (i = 0; i < 8; i++) 
-    {
-		for (j = 0; j < 16; j++) 
-        {
-			sprintf(buff, "%c", j + 65);
-			u8x8_DrawString(&u8x8, j, i, buff);
-		}
-	}
-
-}
+/*******************************************************************************
+* Function definitions
+*******************************************************************************/
 
 /// <summary>
 ///     Application entry point
 /// </summary>
-int main(void) {
+int 
+main(int argc, char *argv[]) 
+{
 	Log_Debug("\n*** Starting ***\n");
 
-	if (InitPeripheralsAndHandlers() != 0) {
-		terminationRequired = true;
+    Log_Debug("Press Button 1 to exit.\n");
+
+    gb_is_termination_requested = false;
+
+    // Initialize handlers
+    if (init_handlers() != 0)
+    {
+        // Failed to init handlers
+        gb_is_termination_requested = true;
+    }
+
+    // Initialize peripherals
+    if (!gb_is_termination_requested)
+    {
+        if (init_peripherals() != 0)
+        {
+            // Failed to init peripherals
+            gb_is_termination_requested = true;
+        }
+    }
+
+	if (!gb_is_termination_requested) 
+    {
+        Log_Debug("Calling Init\n");
+        u8x8_InitDisplay(&g_u8x8);
+
+        u8x8_SetPowerSave(&g_u8x8, 0);
+
+        Log_Debug("Calling ClearDisplay\n");
+        u8x8_ClearDisplay(&g_u8x8);
+
+        Log_Debug("Calling Set Font\n");
+        u8x8_SetFont(&g_u8x8, u8x8_font_amstrad_cpc_extended_f);
+
+        Log_Debug("Sending drawstring\n");
+
+        char buff[10];
+        uint8_t i;
+        uint8_t j = 0;
+
+        for (i = 0; i < 8; i++)
+        {
+            for (j = 0; j < 16; j++)
+            {
+                sprintf(buff, "%c", j + 65);
+                u8x8_DrawString(&g_u8x8, j, i, buff);
+            }
+        }
+
+        // Main program loop
+        while (!gb_is_termination_requested)
+        {
+            // Handle timers
+            if (WaitForEventAndCallHandler(g_fd_epoll) != 0)
+            {
+                gb_is_termination_requested = true;
+            }
+        }
+
 	}
 
-    lib_u8g2_set_i2c_fd(i2cFd);
+    u8x8_ClearDisplay(&g_u8x8);
 
-	if (!terminationRequired) {
-		u8x8Main();
-	}
+    close_peripherals_and_handlers();
 
-	ClosePeripheralsAndHandlers();
-	return 0;
+    Log_Debug("*** Terminated ***\n");
+    return 0;
 }
+
+/*******************************************************************************
+* Private function definitions
+*******************************************************************************/
+
+static void
+termination_handler(int signal_number)
+{
+    gb_is_termination_requested = true;
+}
+
+static int
+init_handlers(void)
+{
+    Log_Debug("Init Handlers\n");
+
+    int result = -1;
+
+    // Create signal handler
+    struct sigaction action;
+    memset(&action, 0, sizeof(struct sigaction));
+    action.sa_handler = termination_handler;
+    result = sigaction(SIGTERM, &action, NULL);
+    if (result != 0) 
+    {
+        Log_Debug("ERROR: %s - sigaction: errno=%d (%s)\n",
+            __FUNCTION__, errno, strerror(errno));
+    }
+
+    // Create epoll
+    if (result == 0)
+    {
+        g_fd_epoll = CreateEpollFd();
+        if (g_fd_epoll < 0)
+        {
+            result = -1;
+        }
+    }
+
+    return result;
+}
+
+static int
+init_peripherals(void)
+{
+    int result = -1;
+
+    // Initialize I2C bus
+    Log_Debug("Init I2C\n");
+    g_fd_i2c = I2CMaster_Open(I2C_ISU);
+    if (g_fd_i2c < 0) 
+    {
+        Log_Debug("ERROR: I2CMaster_Open: errno=%d (%s)\n",
+            errno, strerror(errno));
+    }
+    else
+    {
+        result = I2CMaster_SetBusSpeed(g_fd_i2c, I2C_BUS_SPEED);
+        if (result != 0)
+        {
+            Log_Debug("ERROR: I2CMaster_SetBusSpeed: errno=%d (%s)\n",
+                errno, strerror(errno));
+        }
+        else
+        {
+            result = I2CMaster_SetTimeout(g_fd_i2c, I2C_TIMEOUT_MS);
+            if (result != 0) 
+            {
+                Log_Debug("ERROR: I2CMaster_SetTimeout: errno=%d (%s)\n",
+                    errno, strerror(errno));
+            }
+        }
+    }
+
+    // Initialize 128x64 SSD1306 OLED
+    if (result != -1)
+    {
+        Log_Debug("Initializig OLED display.\n");
+        // Set u8x8 display type and callbacks
+        u8x8_Setup(&g_u8x8, u8x8_d_ssd1306_128x64_noname, u8x8_cad_ssd13xx_i2c,
+            u8x8_byte_i2c, lib_u8g2_custom_cb);
+        // Set u8x8 I2C address
+        u8x8_SetI2CAddress(&g_u8x8, I2C_ADDR_OLED);
+        lib_u8g2_set_i2c_fd(g_fd_i2c);
+    }
+
+    // Initialize development kit button GPIO
+    // -- Open button1 GPIO as input
+    if (result != -1)
+    {
+        Log_Debug("Opening PROJECT_BUTTON_1 as input.\n");
+        g_fd_gpio_button1 = GPIO_OpenAsInput(PROJECT_BUTTON_1);
+        if (g_fd_gpio_button1 < 0) {
+            Log_Debug("ERROR: Could not open button GPIO: %s (%d).\n",
+                strerror(errno), errno);
+            result = -1;
+        }
+    }
+
+    // Create timer for button press check
+    if (result != -1)
+    {
+        struct timespec button_press_check_period = { 0, 1000000 };
+
+        g_fd_poll_timer_button = CreateTimerFdAndAddToEpoll(g_fd_epoll,
+            &button_press_check_period, &g_event_data_button, EPOLLIN);
+        if (g_fd_poll_timer_button < 0)
+        {
+            Log_Debug("ERROR: Could not create button poll timer: %s (%d).\n",
+                strerror(errno), errno);
+            result = -1;
+        }
+    }
+
+    return result;
+}
+
+static void
+close_peripherals_and_handlers(void)
+{
+    // Close Epoll fd
+    CloseFdAndPrintError(g_fd_epoll, "Epoll");
+
+    // Close I2C
+    CloseFdAndPrintError(g_fd_i2c, "I2C");
+
+    // Close button1 GPIO fd
+    CloseFdAndPrintError(g_fd_gpio_button1, "Button1 GPIO");
+}
+
+static void
+handle_button1_press(void)
+{
+    Log_Debug("Button1 pressed.\n");
+    gb_is_termination_requested = true;
+}
+
+void
+event_handler_timer_button(EventData *event_data)
+{
+    bool b_is_all_ok = true;
+    GPIO_Value_Type state_button1_current;
+
+    // Consume timer event
+    if (ConsumeTimerFdEvent(g_fd_poll_timer_button) != 0)
+    {
+        // Failed to consume timer event
+        gb_is_termination_requested = true;
+        b_is_all_ok = false;
+    }
+
+    if (b_is_all_ok)
+    {
+        // Check for a button1 press
+        if (GPIO_GetValue(g_fd_gpio_button1, &state_button1_current) != 0)
+        {
+            Log_Debug("ERROR: Could not read button GPIO: %s (%d).\n",
+                strerror(errno), errno);
+            gb_is_termination_requested = true;
+            b_is_all_ok = false;
+        }
+        else if (state_button1_current != g_state_button1)
+        {
+            if (state_button1_current == GPIO_Value_Low)
+            {
+                handle_button1_press();
+            }
+            g_state_button1 = state_button1_current;
+        }
+    }
+
+    return;
+}
+
+/* [] END OF FILE */
