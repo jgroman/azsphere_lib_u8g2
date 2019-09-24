@@ -23,15 +23,16 @@ extern "C" {
 #endif
 
 /**
- * @brief Set OLED display I2C interface file descriptor.
+ * @brief Set OLED display I2C interface file descriptor and address
  *
  * This function must be called first before hardware dependent custom library
  * functions can be used.
  *
  * @param fd_i2c I2C interface file descriptor.
+ * @param addr_i2c Device I2C address.
  */
 void
-lib_u8g2_set_fd_i2c(int fd_i2c);
+lib_u8g2_set_i2c(int fd_i2c, I2C_DeviceAddress addr_i2c);
 
 /**
  * @brief Azure Sphere hardware custom I2C interface for u8x8 library.

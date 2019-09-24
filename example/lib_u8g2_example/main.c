@@ -289,15 +289,13 @@ init_peripherals(void)
     if (result != -1)
     {
         Log_Debug("Initializing OLED display.\n");
+
         // Setup u8x8 display type and custom callbacks
         u8x8_Setup(&g_u8x8, u8x8_d_ssd1306_128x64_noname, u8x8_cad_ssd13xx_i2c,
             lib_u8g2_byte_i2c, lib_u8g2_custom_cb);
 
-        // Set u8x8 I2C address
-        u8x8_SetI2CAddress(&g_u8x8, I2C_ADDR_OLED);
-
-        // Set OLED display I2C interface file descriptor
-        lib_u8g2_set_fd_i2c(g_fd_i2c);
+        // Set OLED display I2C interface file descriptor and address
+        lib_u8g2_set_i2c(g_fd_i2c, I2C_ADDR_OLED);
 
         // Initialize display itself
         u8x8_InitDisplay(&g_u8x8);

@@ -22,14 +22,16 @@
 *******************************************************************************/
 
 static int g_i2c_fd = -1;  // I2C interface file descriptor
+static I2C_DeviceAddress g_i2c_address;     // I2C device address
 
 /*******************************************************************************
 * Function definitions
 *******************************************************************************/
 
 void
-lib_u8g2_set_fd_i2c(int fd_i2c) {
+lib_u8g2_set_i2c(int fd_i2c, I2C_DeviceAddress addr_i2c) {
     g_i2c_fd = fd_i2c;
+    g_i2c_address = addr_i2c;
 }
 
 uint8_t
@@ -65,7 +67,7 @@ lib_u8g2_byte_i2c(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
         break;
 
         case U8X8_MSG_BYTE_END_TRANSFER:
-            I2CMaster_Write(g_i2c_fd, u8x8_GetI2CAddress(u8x8), buffer, buf_idx);
+            I2CMaster_Write(g_i2c_fd, g_i2c_address, buffer, buf_idx);
         break;
 
         default:
