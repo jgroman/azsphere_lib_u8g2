@@ -13,7 +13,6 @@
 
 // applibs_versions.h defines the API struct versions to use for applibs APIs.
 #include "applibs_versions.h"
-#include <applibs/i2c.h>
 
 #include <lib_u8g2.h>
 

@@ -11,16 +11,17 @@
 #ifndef LIB_U8G2_H
 #define LIB_U8G2_H
 
-#include <stdint.h>
-
-#include "../../../u8g2/csrc/u8x8.h"
-
-// Comment out line below if not using u8g2 functions
-#include "../../../u8g2/csrc/u8g2.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <stdint.h>
+
+#include "../../../u8g2/csrc/u8x8.h"
+// Comment line below if not using u8g2 functions
+#include "../../../u8g2/csrc/u8g2.h"
+
+#include <applibs/i2c.h>
 
 /**
  * @brief Set OLED display I2C interface file descriptor and address
