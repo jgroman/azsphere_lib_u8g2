@@ -17,25 +17,27 @@
 
 #include <lib_u8g2.h>
 
-// I2C file descriptor for I2C operations
-static int g_i2c_fd = -1;
+/*******************************************************************************
+* Global variables
+*******************************************************************************/
 
-/**
- * @brief Set library global I2C file descriptor.
- */
-void 
-lib_u8g2_set_i2c_fd(int fd) {
-    g_i2c_fd = fd;
+static int g_i2c_fd = -1;  // I2C interface file descriptor
+
+/*******************************************************************************
+* Function definitions
+*******************************************************************************/
+
+void
+lib_u8g2_set_fd_i2c(int fd_i2c) {
+    g_i2c_fd = fd_i2c;
 }
 
-/**
- * @brief Azure Sphere hardware custom I2C interface for u8x8 library
- */
 uint8_t
-u8x8_byte_i2c(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
+lib_u8g2_byte_i2c(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
 {
     // u8g2/u8x8 will never send more than 32 bytes between START_TRANSFER 
     // and END_TRANSFER
+
     static uint8_t buffer[32];
     static uint8_t buf_idx;
     uint8_t *data;
@@ -73,10 +75,7 @@ u8x8_byte_i2c(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
     return 1;
 }
 
-/**
- * @brief Azure Sphere hardware custom delay and GPIO callback
- */
-uint8_t 
+uint8_t
 lib_u8g2_custom_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
 {
     struct timespec sleep_time;
@@ -104,8 +103,8 @@ lib_u8g2_custom_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
             nanosleep(&sleep_time, NULL);
         break;
 
-        /* If you want to use a software interface or have these pins then you
-        *  need to read and write them
+        /* SPI and data GPIO control not implemented
+
         case U8X8_MSG_GPIO_SPI_CLOCK:
         case U8X8_MSG_GPIO_SPI_DATA:
         case U8X8_MSG_GPIO_CS:
@@ -124,7 +123,8 @@ lib_u8g2_custom_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
         case U8X8_MSG_GPIO_E:
         case U8X8_MSG_GPIO_I2C_CLOCK:
         case U8X8_MSG_GPIO_I2C_DATA:
-        break;  */
+        break;  
+        */
 
         default:
         break;

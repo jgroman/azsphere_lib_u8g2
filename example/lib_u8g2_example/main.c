@@ -293,13 +293,14 @@ init_peripherals(void)
     // Initialize 128x64 SSD1306 OLED
     if (result != -1)
     {
-        Log_Debug("Initializig OLED display.\n");
-        // Set u8x8 display type and callbacks
+        Log_Debug("Initializing OLED display.\n");
+        // Set u8x8 display type and custom callbacks
         u8x8_Setup(&g_u8x8, u8x8_d_ssd1306_128x64_noname, u8x8_cad_ssd13xx_i2c,
-            u8x8_byte_i2c, lib_u8g2_custom_cb);
+            lib_u8g2_byte_i2c, lib_u8g2_custom_cb);
         // Set u8x8 I2C address
         u8x8_SetI2CAddress(&g_u8x8, I2C_ADDR_OLED);
-        lib_u8g2_set_i2c_fd(g_fd_i2c);
+        // Set OLED display I2C interface file descriptor
+        lib_u8g2_set_fd_i2c(g_fd_i2c);
     }
 
     // Initialize development kit button GPIO
@@ -308,7 +309,8 @@ init_peripherals(void)
     {
         Log_Debug("Opening PROJECT_BUTTON_1 as input.\n");
         g_fd_gpio_button1 = GPIO_OpenAsInput(PROJECT_BUTTON_1);
-        if (g_fd_gpio_button1 < 0) {
+        if (g_fd_gpio_button1 < 0) 
+        {
             Log_Debug("ERROR: Could not open button GPIO: %s (%d).\n",
                 strerror(errno), errno);
             result = -1;
