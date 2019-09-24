@@ -147,7 +147,6 @@ int
 main(int argc, char *argv[]) 
 {
 	Log_Debug("\n*** Starting ***\n");
-
     Log_Debug("Press Button 1 to exit.\n");
 
     gb_is_termination_requested = false;
@@ -171,14 +170,11 @@ main(int argc, char *argv[])
 
 	if (!gb_is_termination_requested) 
     {
-        Log_Debug("Calling Init\n");
-        u8x8_InitDisplay(&g_u8x8);
+        // All handlers and peripherals are initialized properly at this point
 
-        u8x8_SetPowerSave(&g_u8x8, 0);
-
-        Log_Debug("Calling ClearDisplay\n");
         u8x8_ClearDisplay(&g_u8x8);
 
+        // Basic u8x8 character grid demonstration
         Log_Debug("Calling Set Font\n");
         u8x8_SetFont(&g_u8x8, u8x8_font_amstrad_cpc_extended_f);
 
@@ -207,9 +203,8 @@ main(int argc, char *argv[])
             }
         }
 
+        u8x8_ClearDisplay(&g_u8x8);
 	}
-
-    u8x8_ClearDisplay(&g_u8x8);
 
     close_peripherals_and_handlers();
 
@@ -294,13 +289,21 @@ init_peripherals(void)
     if (result != -1)
     {
         Log_Debug("Initializing OLED display.\n");
-        // Set u8x8 display type and custom callbacks
+        // Setup u8x8 display type and custom callbacks
         u8x8_Setup(&g_u8x8, u8x8_d_ssd1306_128x64_noname, u8x8_cad_ssd13xx_i2c,
             lib_u8g2_byte_i2c, lib_u8g2_custom_cb);
+
         // Set u8x8 I2C address
         u8x8_SetI2CAddress(&g_u8x8, I2C_ADDR_OLED);
+
         // Set OLED display I2C interface file descriptor
         lib_u8g2_set_fd_i2c(g_fd_i2c);
+
+        // Initialize display itself
+        u8x8_InitDisplay(&g_u8x8);
+
+        // Wake up display
+        u8x8_SetPowerSave(&g_u8x8, 0);
     }
 
     // Initialize development kit button GPIO
