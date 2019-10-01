@@ -133,4 +133,13 @@ lib_u8g2_custom_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
     return 1;
 }
 
+u8g2_uint_t 
+lib_u8g2_DrawCenteredStr(u8g2_t *u8g2, u8g2_uint_t y, const char *s)
+{
+    u8g2_uint_t w_display = u8g2_GetDisplayWidth(u8g2);
+    u8g2_uint_t w_string = u8g2_GetStrWidth(u8g2, s);
+
+    return u8g2_DrawStr(u8g2, (u8g2_uint_t)((w_display - w_string) / 2), y, s);
+}
+
 /* [] END OF FILE */
