@@ -180,7 +180,7 @@ main(int argc, char *argv[])
 
         Log_Debug("Sending drawstring\n");
 
-        char buff[10];
+        char buff[30];
         uint8_t i;
         uint8_t j = 0;
 
