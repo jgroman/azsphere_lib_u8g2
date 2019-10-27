@@ -9,4 +9,4 @@ This wrapper allows use of [olikraus'](https://github.com/olikraus) excellent [u
 4. Include lib_u8g2.h to your source files.
 
 ## Usage
-Refer to included example project lib_u8g2_example for library usage demonstration.
+Refer to included example projects for library usage demonstration.
