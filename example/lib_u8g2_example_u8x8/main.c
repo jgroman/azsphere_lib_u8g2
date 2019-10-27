@@ -188,7 +188,7 @@ main(int argc, char *argv[])
         {
             for (j = 0; j < 16; j++)
             {
-                sprintf(buff, "%c", j + 65);
+                sprintf(buff, "%c", j + (16 * i) + 65);
                 u8x8_DrawString(&g_u8x8, j, i, buff);
             }
         }
