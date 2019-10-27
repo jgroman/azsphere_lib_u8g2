@@ -11,9 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{0df49b9e-9ef9-4f13-b31f-19d37cdd1060}</ProjectGuid>
+    <ProjectGuid>{517b1688-2772-4159-b804-bf85c07bc779}</ProjectGuid>
     <Keyword>AzureSphere</Keyword>
-    <RootNamespace>lib_u8g2_example</RootNamespace>
+    <RootNamespace>lib_u8g2_example_u8x8</RootNamespace>
     <MinimumVisualStudioVersion>15.0</MinimumVisualStudioVersion>
     <ApplicationType>Linux</ApplicationType>
     <ApplicationTypeRevision>1.0</ApplicationTypeRevision>
@@ -37,11 +37,7 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
-    <TargetHardwareDirectory>..\hardware\avnet_mt3620_sk</TargetHardwareDirectory>
-    <TargetHardwareDefinition>project_hardware.json</TargetHardwareDefinition>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
-    <TargetHardwareDirectory>..\hardware\avnet_mt3620_sk</TargetHardwareDirectory>
+    <TargetHardwareDirectory>../hardware/avnet_mt3620_sk/</TargetHardwareDirectory>
     <TargetHardwareDefinition>project_hardware.json</TargetHardwareDefinition>
   </PropertyGroup>
   <ItemGroup>
@@ -53,9 +49,6 @@
     <ProjectReference Include="..\..\lib_u8g2\lib_u8g2.vcxproj">
       <Project>{10f4b2dd-b608-4b0b-bf95-08214f5695a4}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="epoll_timerfd_utilities.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

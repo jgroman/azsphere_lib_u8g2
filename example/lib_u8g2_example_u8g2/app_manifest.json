@@ -1,7 +1,7 @@
 {
   "SchemaVersion": 1,
-  "Name" : "lib_u8g2_example",
-  "ComponentId" : "d63b3594-a28c-4f96-bf76-70f80cb3fd92",
+  "Name" : "lib_u8g2_example_u8g2",
+  "ComponentId" : "a36fdd0b-8477-4732-b98d-b90e95e23a2c",
   "EntryPoint": "/bin/app",
   "CmdArgs": [],
   "Capabilities": {

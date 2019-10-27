@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.28307.779
+VisualStudioVersion = 15.0.28307.902
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lib_u8g2_example", "lib_u8g2_example\lib_u8g2_example.vcxproj", "{0DF49B9E-9EF9-4F13-B31F-19D37CDD1060}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lib_u8g2_example_u8x8", "lib_u8g2_example_u8x8\lib_u8g2_example_u8x8.vcxproj", "{517B1688-2772-4159-B804-BF85C07BC779}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lib_u8g2", "..\lib_u8g2\lib_u8g2.vcxproj", "{10F4B2DD-B608-4B0B-BF95-08214F5695A4}"
 EndProject
@@ -13,10 +13,10 @@ Global
 		Release|ARM = Release|ARM
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{0DF49B9E-9EF9-4F13-B31F-19D37CDD1060}.Debug|ARM.ActiveCfg = Debug|ARM
-		{0DF49B9E-9EF9-4F13-B31F-19D37CDD1060}.Debug|ARM.Build.0 = Debug|ARM
-		{0DF49B9E-9EF9-4F13-B31F-19D37CDD1060}.Release|ARM.ActiveCfg = Release|ARM
-		{0DF49B9E-9EF9-4F13-B31F-19D37CDD1060}.Release|ARM.Build.0 = Release|ARM
+		{517B1688-2772-4159-B804-BF85C07BC779}.Debug|ARM.ActiveCfg = Debug|ARM
+		{517B1688-2772-4159-B804-BF85C07BC779}.Debug|ARM.Build.0 = Debug|ARM
+		{517B1688-2772-4159-B804-BF85C07BC779}.Release|ARM.ActiveCfg = Release|ARM
+		{517B1688-2772-4159-B804-BF85C07BC779}.Release|ARM.Build.0 = Release|ARM
 		{10F4B2DD-B608-4B0B-BF95-08214F5695A4}.Debug|ARM.ActiveCfg = Debug|ARM
 		{10F4B2DD-B608-4B0B-BF95-08214F5695A4}.Debug|ARM.Build.0 = Debug|ARM
 		{10F4B2DD-B608-4B0B-BF95-08214F5695A4}.Release|ARM.ActiveCfg = Release|ARM
@@ -26,6 +26,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {D2CB6B25-01BB-44AA-A20F-9F4A6929C413}
+		SolutionGuid = {0A0F1911-1A94-49FF-AC4B-43A2C363780B}
 	EndGlobalSection
 EndGlobal

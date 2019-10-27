@@ -24,7 +24,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="epoll_timerfd_utilities.h">
+    <ClInclude Include="logo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
