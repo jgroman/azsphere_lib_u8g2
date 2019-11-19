@@ -42,7 +42,7 @@
 
 // Import project hardware abstraction from project 
 // property "Target Hardware Definition Directory"
-#include <hw/project_hardware.h>
+#include "../hardware/avnet_mt3620_sk/inc/hw/project_hardware.h"
 
 // Using a single-thread event loop pattern based on Epoll and timerfd
 #include "epoll_timerfd_utilities.h"

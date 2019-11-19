@@ -14,7 +14,7 @@
 // applibs_versions.h defines the API struct versions to use for applibs APIs.
 #include "applibs_versions.h"
 
-#include <lib_u8g2.h>
+#include "lib_u8g2.h"
 
 /*******************************************************************************
 * Global variables

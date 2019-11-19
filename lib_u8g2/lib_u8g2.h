@@ -17,9 +17,9 @@ extern "C" {
 
 #include <stdint.h>
 
-#include "../../../u8g2/csrc/u8x8.h"
+#include "./u8g2/csrc/u8x8.h"
 // Comment line below if not using u8g2 functions
-#include "../../../u8g2/csrc/u8g2.h"
+#include "./u8g2/csrc/u8g2.h"
 
 #include <applibs/i2c.h>
 

@@ -1,7 +1,7 @@
 {
   "SchemaVersion": 1,
-  "Name" : "lib_u8g2_example_u8x8",
-  "ComponentId" : "08d158d4-7d47-4f2e-9e79-c224c404c835",
+  "Name": "lib_u8g2_example_u8x8",
+  "ComponentId": "418DA335-A2F0-4D5E-9876-A23F5AECB534",
   "EntryPoint": "/bin/app",
   "CmdArgs": [],
   "Capabilities": {
@@ -11,5 +11,5 @@
     "Uart": [],
     "WifiConfig": false
   },
-  "ApplicationType":"Default"
+  "ApplicationType": "Default"
 }
