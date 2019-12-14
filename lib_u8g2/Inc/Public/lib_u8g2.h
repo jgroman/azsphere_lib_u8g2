@@ -21,6 +21,7 @@ extern "C" {
 // Comment line below if not using u8g2 functions
 #include "../../../u8g2/csrc/u8g2.h"
 
+#define I2C_STRUCTS_VERSION 1
 #include <applibs/i2c.h>
 
 /**

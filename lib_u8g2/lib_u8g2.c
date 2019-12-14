@@ -10,9 +10,12 @@
 
 #include <time.h>
 #include <stdio.h>
+#include <errno.h>
+#include <string.h>
 
 // applibs_versions.h defines the API struct versions to use for applibs APIs.
 #include "applibs_versions.h"
+#include <applibs/log.h>
 
 #include <lib_u8g2.h>
 
@@ -43,6 +46,11 @@ lib_u8g2_byte_i2c(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
     static uint8_t buf_idx;
     uint8_t *data;
 
+    int result;
+
+    struct timespec sleep_time;
+
+
     switch (msg)
     {
         case U8X8_MSG_BYTE_SEND:
@@ -66,7 +74,17 @@ lib_u8g2_byte_i2c(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
         break;
 
         case U8X8_MSG_BYTE_END_TRANSFER:
-            I2CMaster_Write(g_i2c_fd, g_i2c_address, buffer, buf_idx);
+            
+            // Delay required by Azure Sphere OS 19.11
+            sleep_time.tv_sec = 0;
+            sleep_time.tv_nsec = 800000;
+            nanosleep(&sleep_time, NULL);
+
+            result = I2CMaster_Write(g_i2c_fd, g_i2c_address, buffer, buf_idx);
+            if (result == -1) {
+                Log_Debug("LIB U8G2 ERROR: I2CMaster_Write: errno=%d (%s). Length: %d\n", errno,
+                    strerror(errno), buf_idx);
+            }
         break;
 
         default:
